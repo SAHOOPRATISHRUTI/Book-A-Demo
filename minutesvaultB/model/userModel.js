@@ -9,18 +9,16 @@ const demoBookingSchema = new mongoose.Schema({
   mobile: {
     type: String,
     required: true,
-    trim: true,
-    unique: true, 
+    trim: true, 
   },
   email: {
     type: String,
     required: true,
-    trim: true,
-    unique: true, 
+    trim: true, 
   },
   message: {
     type: String,
-    required: true,
+    
     trim: true,
   },
   createdAt: {

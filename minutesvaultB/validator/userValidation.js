@@ -6,7 +6,7 @@ class DemoBookingValidator {
       body('name').notEmpty().withMessage('Name is required'),
       body('mobile').isMobilePhone().withMessage('Invalid mobile number'),
       body('email').isEmail().withMessage('Invalid email address'),
-      body('message').notEmpty().withMessage('Message is required'),
+      // body('message').notEmpty().withMessage('Message is required'),
     ];
   }
 }

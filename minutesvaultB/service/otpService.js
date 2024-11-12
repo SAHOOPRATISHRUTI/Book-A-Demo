@@ -12,27 +12,25 @@ const generateOtp = () => {
 };
 
 
-const sendOtp = async (email) => {
+const sendOtp = async (email, name, mobile) => {
   try {
     const now = Date.now();
     let otpRecord = await Otp.findOne({ email }).sort({ createdAt: -1 });
-
 
     if (otpRecord && otpRecord.attempts >= 3) {
       const timeSinceLastAttempt = (now - otpRecord.createdAt) / (60 * 1000); 
       if (timeSinceLastAttempt < 10) {
         throw new Error(Messages.maxOTP);
       } else {
-        
         otpRecord.attempts = 0;
         otpRecord.isValid = false;
         await otpRecord.save();
       }
     }
 
-   
     const otp = generateOtp();
     const otpExpiry = new Date(now + 5 * 60 * 1000); 
+
 
     if (otpRecord) {
       otpRecord.otp = otp;
@@ -40,6 +38,8 @@ const sendOtp = async (email) => {
       otpRecord.createdAt = now;
       otpRecord.otpExpiry = otpExpiry;
       otpRecord.isValid = true;
+      otpRecord.name = name; 
+      otpRecord.mobile = mobile; 
       await otpRecord.save();
     } else {
       otpRecord = new Otp({
@@ -48,14 +48,26 @@ const sendOtp = async (email) => {
         attempts: 1,
         createdAt: now,
         otpExpiry: otpExpiry,
-        isValid: true
+        isValid: true,
+        name,  
+        mobile, 
       });
       await otpRecord.save();
     }
 
-
+    // Send OTP email
     const emailSubject = 'OTP to Verify Your Email to Schedule a Demo with MinutesVault';
-    const mailData = `Thank you for your interest in scheduling a demo with MinutesVault! Before we proceed, please verify your email address by using the following One-Time Password (OTP). OTP <strong>${otp}</strong>`;
+    const mailData =`<html>
+    <body>
+      <p>Dear ${name},</p>
+      <p>Thank you for your interest in scheduling a demo with MinutesVault! Before we proceed, please verify your email address by using the following One-Time Password (OTP).</p>
+      <p><strong>OTP: ${otp}</strong></p>
+      <p>Please enter this OTP in the designated field within 10 minutes to complete the verification process.</p>
+      <p>If you didn’t request this, please disregard this email.</p>
+      <p>Warm regards,<br>Team MinutesVault</p>
+    </body>
+  </html>`
+
     await emailService.sendEmail(email, emailSubject, mailData);
 
     return { success: true, otpSent: true, attempts: otpRecord.attempts };
@@ -64,6 +76,7 @@ const sendOtp = async (email) => {
     return { success: false, error: 'Server error, please try again later.' };
   }
 };
+
 
 
 
